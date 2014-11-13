@@ -1,0 +1,14 @@
+#!/bin/bash
+DEPLOY='/etc/puppet/environments'
+REPO='hostname:/srv/git/repos/puppet.git'
+SSH_KEY='/var/lib/puppet/.ssh/puppet-sync.key'
+
+read oldrev newrev ref
+BRANCH=${ref/*\/*\/}
+
+sudo -Hu puppet ansible workers \
+  -a "puppet-sync --branch $BRANCH --repository $REPO --deploy $DEPLOY" \
+  -o --private-key=$SSH_KEY
+
+exit=$?
+exit $exit

@@ -1,0 +1,11 @@
+#!/bin/bash
+DEPLOY='/etc/puppet/environments'
+REPO='hostname:/srv/git/repos/puppet.git'
+
+read oldrev newrev ref
+BRANCH=${ref/*\/*\/}
+
+sudo -u puppet ssh worker "puppet-sync --branch $BRANCH --repository $REPO --deploy $DEPLOY"
+
+exit=$?
+exit $exit
