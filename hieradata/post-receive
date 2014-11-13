@@ -1,0 +1,8 @@
+#!/bin/bash
+
+refname=$1
+oldrev=$2
+newrev=$3
+read oldrev newrev refname
+branch=${refname#*\/*\/}
+exec sudo -u puppet puppet-sync -d /etc/puppet-worker/hieradata -r /srv/git/hieradata.git -b $branch -p

@@ -1,0 +1,74 @@
+<html>
+<head>
+  <title>LISA 2014 - Puppet in the Enterprise</title>
+</head>
+<body>
+  <h1>LISA 2014 - Puppet in the Enterprise</h1>
+  <p>This boot.iso is running puppet 3.7.1 and docker.  Puppet is configured to run a master through apache and mod_passenger.  There is a signing puppet instance, puppetca  and a worker puppet instance.  This can be extended to a load balancing configuration with minimal effort.</p>
+  <p>The image is also running docker with a debian wheezy image installed with puppet support.  The version on the docker image is 3.7.3. You may run docker with:
+  <p>
+  <pre><code>
+    $ sudo docker run -it -h hostname puppet /bin/bash
+  </code></pre>
+
+  <h2>Setup Docker container</h2>
+  The docker container will need to talk to the puppet server on the docker0 interface, add an entry to that network in /etc/hosts
+  <pre><code>
+    dockernode# echo "172.17.42.1 puppet.example.com puppet" >>/etc/hosts
+  </code></pre>
+  <h2>Demo 1</h2>
+  This demo is just to show that the configuration is working.  We have /etc/puppet and /etc/puppet-worker configured for our puppet masters. Run puppet on a few nodes and ensure that everything is working as expected
+  <ul>
+    <li><tt>puppet$ sudo docker run -it -h node1.example.com puppet /bin/bash</tt></li>
+    <li><tt>node1# echo "172.17.42.1 puppet.example.com puppet" >>/etc/hosts</tt></li>
+    <li><tt>node1# puppet agent -t</tt></li>
+    <li><tt>puppet$ sudo puppet cert sign node1.example.com</tt></li>
+    <li><tt>node1# puppet agent -t</tt></li>
+  </ul>
+  <h3>Expected result:</h3> Puppet agent should run on node1 and create a certificate signing request on the master. we should be able to sign the request and have the agent run successfully the next time.
+  <h2>Demo 2</h2>
+  This will show how to use hiera to include classes on a node and how to override an argument/attribute to an included class
+  <ul>
+    <li><tt>puppet$ cd puppet/manifests</tt></li>
+    <li><tt>puppet$ vim site.pp</tt><br>remove the comment on the hiera_include line</li>
+    <li><tt>puppet$ git add site.pp && git commit -m "adding in hiera_include"</tt></li>
+    <li><tt>puppet$ git push</tt></li>
+    <li> -- end of change for puppet repo --
+    <li><tt>puppet$ cd ~/hieradata/hosts</tt></li>
+    <li><tt>puppet$ cp node.yaml node1.yaml</tt></li>
+    <li><tt>puppet$ git add node1.yaml && git commit -m "adding hieradata for node1"</tt></li>
+    <li><tt>puppet$ git push</tt></li>
+    <li>wait 5 seconds (minimum)
+    <li><tt>node1# puppet agent -t</tt></li>
+  </ul>
+  <h3>Expected result:</h3>hiera_include should include the classes defined for node1 in node1.yaml. The value for the msg variable should be overwritten. 
+  <h3>Extra credit:</h3>Edit node1.yaml and change the msg line to whatever you wish, wait for the server to notice the change and run the agent on the node again.
+
+  <h2>Demo 3</h2>
+  Demo r10k goodness, modify the module in the company repo and have the pulled into the environment.
+  <ul>
+    <li><tt>puppet$ cd ~/hieradata/hosts</tt></li>
+    <li><tt>puppet$ vim node1.yaml</tt><br>Add class company to the classes array in the yaml file.</li>
+    <li><tt>puppet$ git add node1.yaml && git commit -m "adding company class"</tt></li>
+    <li><tt>puppet$ git push</tt></li>
+    <li><tt>node1# puppet agent -t</tt></li>
+    <li><tt>puppet$ cd ~/company/manifests</tt></li>
+    <li><tt>puppet$ vim init.pp</tt><br>change the notify, add yourname for instance</li>
+    <li><tt>puppet$ git add init.pp && git commit -m "changing company module</tt></li>
+    <li><tt>puppet$ git push</tt></li>
+    <li><tt>node1# puppet agent -t</tt></li>
+  </ul>
+  <h2>Demo 4</h2>
+  Create an environment to work on a problem, make a change and see the change reflected on the node (when run against that environment).
+  <ul>
+    <li><tt>puppet$ cd ~/puppet</tt></li>
+    <li><tt>puppet$ git branch [yourlastname]</tt></li>
+    <li><tt>puppet$ vim README</tt><br>modify the file in some way</li>
+    <li><tt>puppet$ git add README && git commit -m "changing README"</tt></li>
+    <li><tt>puppet$ git push</tt></li>
+    <li><tt>node1# puppet agent -t</tt> </li>
+    <li><tt>node1# puppet agent -t --environment [yourlastname]</li>
+  </ul>
+  <h3>Expected result:</h3> The notify shown when run in the default environment should be different than that shown in the [yourlastname] branch.
+</body>
+</html>

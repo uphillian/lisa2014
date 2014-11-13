@@ -1,0 +1,7 @@
+mod 'puppetlabs/stdlib'
+
+mod 'puppetlabs/concat'
+
+mod 'company',
+  :git    => '/srv/git/company.git',
+  :branch => 'production'

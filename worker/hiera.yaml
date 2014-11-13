@@ -1,0 +1,11 @@
+---
+:backends:
+  - yaml
+:hierarchy:
+  - defaults
+  - hosts/%{hostname}
+  - domains/%{domain}
+  - global
+
+:yaml:
+  :datadir: /etc/puppet-worker/hieradata/production

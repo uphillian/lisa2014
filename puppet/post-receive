@@ -1,0 +1,8 @@
+#!/bin/bash
+
+refname=$1
+oldrev=$2
+newrev=$3
+read oldrev newrev refname
+branch=${refname#*\/*\/}
+exec sudo -u puppet r10k deploy environment $branch -p

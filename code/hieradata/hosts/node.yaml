@@ -1,0 +1,5 @@
+---
+classes: 
+  - andromeda
+  - nova
+nova::msg: "Hiera override of nova::msg"
